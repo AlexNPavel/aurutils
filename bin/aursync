@@ -163,6 +163,12 @@ else
     ign() { tee; }
 fi
 
+if ((force)); then
+    inv() { grep -Fxv "$@" -; }
+else
+    inv() { tee; }
+fi
+
 if [[ -v repo ]]; then
     if [[ ! -v root ]]; then
         root=$(pacconf --single --repo="$repo" Server)
@@ -239,7 +245,7 @@ jq -r '.[].results[] | [.PackageBase,.URLPath] | @tsv' "${json_set[@]}" > tsv/ur
 lib32 queue_0 | ign | sub tsv/pkgbase - > queue_1
 
 if ((chkver)); then
-    aurcheck -d "$repo" -r "$root" -c < tsv/pkgver | sub tsv/pkgbase -
+    aurcheck -d "$repo" -r "$root" -c < tsv/pkgver | inv "$@" | sub tsv/pkgbase -
 fi > sift
 
 if ! grep -Fxvf sift queue_1 > queue; then
